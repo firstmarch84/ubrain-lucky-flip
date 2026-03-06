@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Gaegu", cursive, sans-serif;
+}
+
+:root {
+  --ubrain-navy: #253585;
+  --ubrain-navy-light: #3d4fad;
+  --ubrain-accent: #ffcc00;
+  --ubrain-bg: #fdfdfd;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: var(--ubrain-bg);
+  font-family: 'Gaegu', cursive, sans-serif;
+  cursor: url('/public/logo.png'), auto;
+}
+
+/* 3D Card Styles */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Slot Inset Shadow */
+.card-slot {
+  border-radius: 16px;
+  background: transparent;
+}
+
+/* Card Floating Effect */
+.card-3d {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+}
+
+.card-3d:hover {
+  transform: translateY(-8px) rotateX(4deg);
+}
+
+/* Shake Animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px) rotate(-1deg); }
+  75% { transform: translateX(5px) rotate(1deg); }
+}
+
+.animate-shake {
+  animation: shake 0.1s infinite;
+}
+
+/* Diary Texture */
+.diary-bg {
+  background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Custom Scrollbar (though we aim for no scroll) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}

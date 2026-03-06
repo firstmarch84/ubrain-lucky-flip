@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { 
@@ -11,11 +11,9 @@ import {
   Settings, 
   Play, 
   RotateCcw, 
-  X,
   Sparkles,
   Volume2,
-  ChevronLeft,
-  Loader2
+  ChevronLeft
 } from 'lucide-react';
 
 const LOGO_IMAGE = '/logo.png';
@@ -196,19 +194,6 @@ export default function App() {
     setShowWinnerPopup(false);
   };
 
-  const bgElements = useMemo(() => {
-    const icons = ['icon_bulb_v3', 'icon_megaphone_v3', 'icon_target_v3', 'icon_chat_v3', 'icon_smile_v3', 'icon_star_v3', 'icon_coffee_v3', 'icon_fish_v3'];
-    return Array.from({ length: 24 }).map((_, i) => ({
-      id: i,
-      icon: icons[i % icons.length],
-      top: `${Math.floor(Math.random() * 90)}%`,
-      left: `${Math.floor(Math.random() * 90)}%`,
-      rotate: Math.floor(Math.random() * 60) - 30,
-      delay: Math.random() * 5,
-      width: Math.floor(Math.random() * 40) + 40,
-    }));
-  }, []);
-
   const getGridCols = () => {
     if (count <= 4) return 'grid-cols-2 sm:grid-cols-4 max-w-3xl';
     if (count <= 8) return 'grid-cols-3 sm:grid-cols-4 max-w-4xl';
@@ -219,19 +204,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full diary-bg flex flex-col items-center p-4 sm:p-8 relative overflow-x-hidden overflow-y-auto text-[#253585]">
-      {/* Background Vector Icons (Generated) */}
-      {bgElements.map((el) => (
-          <motion.img 
-            key={el.id}
-            src={`/${el.icon}.png`}
-            animate={{ y: [0, -10, 0], rotate: [el.rotate, el.rotate + 5, el.rotate] }} 
-            transition={{ repeat: Infinity, duration: 4 + el.delay, ease: "easeInOut" }} 
-            className="absolute opacity-20 pointer-events-none mix-blend-multiply grayscale" 
-            style={{ top: el.top, left: el.left, width: el.width, height: el.width }}
-            alt="" 
-          />
-      ))}
-
       <AnimatePresence mode="wait">
         {screen === 'setup' ? (
           <motion.div 
@@ -346,7 +318,7 @@ export default function App() {
                           <>
                             <div className="flex-1 w-full relative flex items-center justify-center overflow-hidden">
                               <img
-                                src={'/win_image_v3.png'}
+                                src={LOGO_IMAGE}
                                 className="w-full h-full object-contain opacity-90 mix-blend-multiply grayscale"
                                 alt="Win"
                               />
@@ -359,7 +331,7 @@ export default function App() {
                           <>
                             <div className="h-1/2 w-full relative flex items-center justify-center overflow-hidden bg-[radial-gradient(#d1d5db_1px,transparent_1px)] bg-[size:14px_14px]">
                               <img
-                                src={'/lose_image_v3.png'}
+                                src={LOGO_IMAGE}
                                 className="w-full h-full object-contain opacity-70 mix-blend-multiply grayscale"
                                 alt="Lose"
                               />

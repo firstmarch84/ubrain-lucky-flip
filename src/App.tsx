@@ -17,16 +17,9 @@ import {
   ChevronLeft,
   Loader2
 } from 'lucide-react';
-import { preloadAllImages } from './services/imageService';
 
-declare global {
-  interface Window {
-    aistudio?: {
-      hasSelectedApiKey: () => Promise<boolean>;
-      openSelectKey: () => Promise<void>;
-    };
-  }
-}
+const LOGO_IMAGE = '/logo.png';
+const VOUCHER_IMAGE = '/voucher.png';
 
 // --- Audio Service (Web Audio API) ---
 class AudioService {
@@ -102,76 +95,15 @@ interface Card {
   isShaking: boolean;
 }
 
-type Screen = 'apikey' | 'loading' | 'setup' | 'game';
-const LOGO_IMAGE = '/logo.png';
-const VOUCHER_IMAGE = '/voucher.png';
+type Screen = 'setup' | 'game';
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('loading');
+  const [screen, setScreen] = useState<Screen>('setup');
   const [count, setCount] = useState<number>(8);
   const [cards, setCards] = useState<Card[]>([]);
   const [winnerIndex, setWinnerIndex] = useState<number | null>(null);
   const [isGameOver, setIsGameOver] = useState(false);
   const [showWinnerPopup, setShowWinnerPopup] = useState(false);
-  
-  // Image Loading State
-  const [images, setImages] = useState<Record<string, string>>({});
-  const [loadingProgress, setLoadingProgress] = useState({ loaded: 0, total: 0 });
-  const [apiError, setApiError] = useState<string | null>(null);
-
-  const loadImages = useCallback(async () => {
-    setScreen('loading');
-    setApiError(null);
-    try {
-      const loadedImages = await preloadAllImages((loaded, total) => {
-        setLoadingProgress({ loaded, total });
-      });
-      setImages(loadedImages);
-      setScreen('setup');
-    } catch (e: any) {
-      console.error("Failed to load images", e);
-      if (e?.message?.includes('Requested entity was not found') || e?.message?.includes('403') || e?.message?.includes('PERMISSION_DENIED')) {
-        setApiError("API 키 권한이 부족하거나 유효하지 않습니다. 결제가 등록된 Google Cloud 프로젝트의 API 키를 다시 선택해주세요.");
-        setScreen('apikey');
-      } else {
-        setScreen('setup'); // Fallback to setup even if images fail
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-    const checkApiKey = async () => {
-      try {
-        if (window.aistudio && window.aistudio.hasSelectedApiKey) {
-          const hasKey = await window.aistudio.hasSelectedApiKey();
-          if (!hasKey) {
-            if (mounted) setScreen('apikey');
-            return;
-          }
-        }
-      } catch (e) {
-        console.error("Error checking API key", e);
-      }
-      if (mounted) loadImages();
-    };
-    checkApiKey();
-    return () => { mounted = false; };
-  }, [loadImages]);
-
-  const handleSelectApiKey = async () => {
-    try {
-      if (window.aistudio && window.aistudio.openSelectKey) {
-        await window.aistudio.openSelectKey();
-        // Assume success and proceed
-        loadImages();
-      } else {
-        setApiError("API 키 선택 기능을 사용할 수 없습니다.");
-      }
-    } catch (e) {
-      console.error("Error selecting API key", e);
-    }
-  };
 
   const getRandomWinner = (max: number) => {
     const array = new Uint32Array(1);
@@ -289,66 +221,19 @@ export default function App() {
     <div className="min-h-screen w-full diary-bg flex flex-col items-center p-4 sm:p-8 relative overflow-x-hidden overflow-y-auto text-[#253585]">
       {/* Background Vector Icons (Generated) */}
       {bgElements.map((el) => (
-        images[el.icon] && (
           <motion.img 
             key={el.id}
-            src={images[el.icon]} 
+            src={`/${el.icon}.png`}
             animate={{ y: [0, -10, 0], rotate: [el.rotate, el.rotate + 5, el.rotate] }} 
             transition={{ repeat: Infinity, duration: 4 + el.delay, ease: "easeInOut" }} 
             className="absolute opacity-20 pointer-events-none mix-blend-multiply grayscale" 
             style={{ top: el.top, left: el.left, width: el.width, height: el.width }}
             alt="" 
           />
-        )
       ))}
 
       <AnimatePresence mode="wait">
-        {screen === 'apikey' ? (
-          <motion.div 
-            key="apikey"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
-            className="bg-white p-10 rounded-2xl shadow-[8px_8px_0px_#151d4d] border-4 border-[#253585] max-w-md w-full text-center relative z-10 my-auto"
-          >
-            <div className="mb-8">
-              <div className="bg-white border-4 border-[#253585] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[4px_4px_0px_#151d4d]">
-                <Settings className="text-[#253585] w-10 h-10" />
-              </div>
-              <h1 className="text-4xl font-bold text-[#253585] mb-2 tracking-tighter">API 키 설정 필요</h1>
-              <p className="text-[#3d4fad] font-medium text-lg">고품질 3D 에셋 생성을 위해<br/>결제가 등록된 Google Cloud 프로젝트의<br/>API 키가 필요합니다.</p>
-            </div>
-
-            {apiError && (
-              <div className="mb-6 p-4 bg-white text-[#253585] rounded-xl text-base font-bold border-4 border-[#253585] shadow-[4px_4px_0px_#151d4d]">
-                {apiError}
-              </div>
-            )}
-
-            <button 
-              onClick={handleSelectApiKey}
-              className="w-full bg-white hover:bg-blue-50 text-[#253585] text-2xl font-bold py-5 rounded-xl shadow-[6px_6px_0px_#151d4d] active:shadow-none active:translate-y-[6px] active:translate-x-[6px] transition-all flex items-center justify-center gap-3 border-4 border-[#253585]"
-            >
-              API 키 선택하기
-            </button>
-            <p className="mt-4 text-sm text-blue-900/60">
-              자세한 내용은 <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="underline text-[#253585] font-bold">결제 문서</a>를 참조하세요.
-            </p>
-          </motion.div>
-        ) : screen === 'loading' ? (
-          <motion.div 
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center bg-white p-10 rounded-2xl shadow-[8px_8px_0px_#151d4d] border-4 border-[#253585] z-50 my-auto"
-          >
-            <Loader2 className="w-16 h-16 text-[#253585] animate-spin mb-4" />
-            <h2 className="text-3xl font-bold text-[#253585] mb-2">스케치 그리는 중...</h2>
-            <p className="text-[#3d4fad] font-medium text-lg">나노바나나2가 귀여운 그림을 그리고 있습니다.</p>
-            <p className="text-base text-blue-900/60 mt-2 font-bold">({loadingProgress.loaded} / {loadingProgress.total} 완료)</p>
-          </motion.div>
-        ) : screen === 'setup' ? (
+        {screen === 'setup' ? (
           <motion.div 
             key="setup"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -461,7 +346,7 @@ export default function App() {
                           <>
                             <div className="flex-1 w-full relative flex items-center justify-center overflow-hidden">
                               <img
-                                src={images['win_image_v3'] || LOGO_IMAGE}
+                                src={'/win_image_v3.png'}
                                 className="w-full h-full object-contain opacity-90 mix-blend-multiply grayscale"
                                 alt="Win"
                               />
@@ -474,7 +359,7 @@ export default function App() {
                           <>
                             <div className="h-1/2 w-full relative flex items-center justify-center overflow-hidden bg-[radial-gradient(#d1d5db_1px,transparent_1px)] bg-[size:14px_14px]">
                               <img
-                                src={images['lose_image_v3'] || LOGO_IMAGE}
+                                src={'/lose_image_v3.png'}
                                 className="w-full h-full object-contain opacity-70 mix-blend-multiply grayscale"
                                 alt="Lose"
                               />
